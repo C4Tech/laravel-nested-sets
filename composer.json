@@ -1,0 +1,40 @@
+{
+    "name": "c4tech/nested-set",
+    "description": "A nested set implementation for easy extension.",
+    "authors": [
+        {
+            "name": "Marcus Amargi",
+            "email": "marcus@c4tech.com",
+            "role": "Developer"
+        },
+        {
+            "name": "Christopher Roussel",
+            "email": "chris@c4tech.com",
+            "role": "Developer"
+        },
+        {
+            "name": "Alton Torregano",
+            "email": "alton@c4tech.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "baum/baum": "~1.0",
+        "c4tech/support": "~1.3|dev-master",
+        "illuminate/support": "~4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "C4tech\\NestedSet\\": "src/",
+            "C4tech\\Test\\NestedSet\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.c4tech.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
