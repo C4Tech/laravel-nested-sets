@@ -65,56 +65,61 @@ class RepositoryTest extends TestCase
         expect_not($this->repo->boot());
     }
 
-    protected function testBootClosure()
+    public function testBootClosure()
     {
         $tag = ['test-123'];
 
-        $model = Mockery::mock('C4tech\Support\Contracts\ModelInterface[moved,saved,deleted]');
-        $model->shouldReceive('moved')
-            ->with(
-                Mockery::on(function ($method) use ($model) {
-                    $method($model);
-
-                    return true;
-                })
-            )->once();
-        $model->shouldReceive('saved')
-            ->with(
-                Mockery::on(function ($method) use ($model) {
-                    $method($model);
-
-                    return true;
-                })
-            )->once();
-        $model->shouldReceive('deleted')
+        $node = Mockery::mock('C4tech\Support\Contracts\ModelInterface');
+        $node->parent = Mockery::mock('C4tech\Support\Contracts\ModelInterface[touch]');
+        $node->parent->shouldReceive('touch')
+            ->withNoArgs()
             ->once();
 
-        $model->parent = Mockery::mock('C4tech\Support\Contracts\ModelInterface[touch]');
-        $model->parent->shouldReceive('touch')
-            ->withNoArgs()
+        $model = Mockery::mock('stdClass');
+        $model->shouldReceive('moved')
+            ->with(
+                Mockery::on(function ($method) use ($node) {
+                    expect_not($method($node));
+
+                    return true;
+                })
+            )->once();
+
+        $model->shouldReceive('saved')
+            ->with(
+                Mockery::on(function ($method) use ($node) {
+                    expect_not($method($node));
+
+                    return true;
+                })
+            )->once();
+
+        $model->shouldReceive('deleted')
             ->once();
 
         Config::shouldReceive('get')
             ->with(null, null)
             ->twice()
             ->andReturn($model, null);
-
         Config::shouldReceive('get')
             ->with('app.debug')
-            ->twice()
+            ->times(3)
             ->andReturn(true);
+
         Log::shouldReceive('info')
             ->with(Mockery::type('string'), Mockery::type('array'))
             ->once();
         Log::shouldReceive('debug')
             ->with(Mockery::type('string'), Mockery::type('array'))
             ->twice();
+
         Cache::shouldReceive('tags->flush')
             ->with($tag)
+            ->withNoArgs()
             ->once();
 
-        $this->repo->shouldReceive('make->formatTag')
-            ->with($model)
+        $this->repo->shouldReceive('make->getParentTags')
+            ->with($node)
             ->withNoArgs()
             ->andReturn($tag);
 
