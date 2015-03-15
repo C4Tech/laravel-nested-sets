@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Mockery;
+use stdClass;
 
 class RepositoryTest extends TestCase
 {
@@ -200,6 +201,55 @@ class RepositoryTest extends TestCase
 
         $method = $this->getMethod($this->repo, 'getChildTags');
         expect($method->invoke($this->repo))->equals($result);
+    }
+
+    public function testCreateEmpty()
+    {
+        $object = new stdClass;
+        $object->exists = true;
+
+        $this->stubCreate(null, [], $object);
+        expect($this->repo->create())->equals($object);
+    }
+
+    public function testCreateParent()
+    {
+        $data = ['test' => true];
+        $parent_id = 13;
+        $parent_model = 'model!';
+
+        $this->mocked_model->shouldReceive('getParentColumnName')
+            ->withNoArgs()
+            ->once()
+            ->andReturn('parent_id');
+
+        $created_model = new stdClass;
+        $created_model->exists = true;
+
+        $created = Mockery::mock('C4tech\NestedSet\Repository')
+            ->makePartial();
+        $this->setPropertyValue($created, 'object', $created_model);
+        $created->shouldReceive('makeChildOf')
+            ->with($parent_model)
+            ->once();
+
+        $parent = Mockery::mock('stdClass');
+        $parent->shouldReceive('getModel')
+            ->withNoArgs()
+            ->once()
+            ->andReturn($parent_model);
+        $parent->exists = true;
+
+        $this->stubCreate(null, $data, $created);
+
+        $this->repo->shouldReceive('find')
+            ->with($parent_id)
+            ->once()
+            ->andReturn($parent);
+
+        $data['parent_id'] = $parent_id;
+
+        expect($this->repo->create($data))->equals($created);
     }
 
     public function testParent()

@@ -80,6 +80,25 @@ abstract class Repository extends BaseRepository
             })->toArray();
     }
 
+    public function create($data = [])
+    {
+        $column = $this->object->getParentColumnName();
+        $parent = false;
+
+        if (isset($data[$column])) {
+            $parent = $this->find($data[$column]);
+        }
+        unset($data[$column]);
+
+        $new_object = parent::create($data);
+
+        if ($new_object->exists && $parent && $parent->exists) {
+            $new_object->makeChildOf($parent->getModel());
+        }
+
+        return $new_object;
+    }
+
     /**
      * Parent
      *
