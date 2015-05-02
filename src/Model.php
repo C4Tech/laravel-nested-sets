@@ -3,18 +3,16 @@
 use Baum\Node as BaseModel;
 use C4tech\Support\Contracts\ModelInterface;
 use C4tech\Support\Traits\DateFilter;
-use C4tech\Support\Traits\Presentable;
-use Robbo\Presenter\PresentableInterface;
 
 /**
  * A foundation Model with useful features.
  */
-class Model extends BaseModel implements PresentableInterface, ModelInterface
+class Model extends BaseModel implements  ModelInterface
 {
     /**
      * Consume the Presentable and DateFilter traits.
      */
-    use DateFilter, Presentable;
+    use DateFilter;
 
     /**
      * @inheritdoc
