@@ -36,5 +36,5 @@
             "url": "https://packages.c4tech.com"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "dev"
 }
