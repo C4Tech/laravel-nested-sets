@@ -3,16 +3,17 @@
 use Baum\Node as BaseModel;
 use C4tech\Support\Contracts\ModelInterface;
 use C4tech\Support\Traits\DateFilter;
+use C4tech\Support\Traits\JsonableApiModel;
 
 /**
  * A foundation Model with useful features.
  */
-class Model extends BaseModel implements  ModelInterface
+class Model extends BaseModel implements ModelInterface
 {
     /**
-     * Consume the Presentable and DateFilter traits.
+     * Consume traits.
      */
-    use DateFilter;
+    use DateFilter, JsonableApiModel;
 
     /**
      * @inheritdoc
@@ -29,5 +30,21 @@ class Model extends BaseModel implements  ModelInterface
     public function getDates()
     {
         return array_merge(parent::getDates(), ['deleted_at']);
+    }
+
+    /**
+     * To Array
+     *
+     * Wraps the default toArray method so that key names are
+     * converted to camelCase for API handling.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        $data = parent::toArray();
+        return (Config::get('c4tech.jsonify_output', true)) ?
+            $this->convertToCamelCase($data) :
+            $data;
     }
 }
