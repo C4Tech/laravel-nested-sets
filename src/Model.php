@@ -4,6 +4,7 @@ use Baum\Node as BaseModel;
 use C4tech\Support\Contracts\ModelInterface;
 use C4tech\Support\Traits\DateFilter;
 use C4tech\Support\Traits\JsonableApiModel;
+use Illuminate\Support\Facades\Config;
 
 /**
  * A foundation Model with useful features.
