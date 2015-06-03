@@ -93,7 +93,7 @@ abstract class Repository extends BaseRepository
         $new_object = parent::create($data);
 
         if ($new_object->exists && $parent && $parent->exists) {
-            $new_object->makeChildOf($parent->getModel());
+            $new_object->getModel()->makeChildOf($parent->getModel());
         }
 
         return $new_object;
