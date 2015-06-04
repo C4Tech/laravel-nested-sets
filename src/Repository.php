@@ -99,6 +99,27 @@ abstract class Repository extends BaseRepository
         return $new_object;
     }
 
+    public function update($data = [])
+    {
+        $column = $this->object->getParentColumnName();
+        $parent = null;
+
+        if (isset($data[$column])) {
+            $parent = $this->find($data[$column]);
+        }
+        unset($data[$column]);
+
+        $response = parent::update($data);
+
+        if ($parent && $parent->exists) {
+            $this->object->makeChildOf($parent->getModel());
+        } elseif ($parent === 0 or $parent === "") {
+            $this->object->makeRoot();
+        }
+
+        return $response;
+    }
+
     /**
      * Parent
      *
