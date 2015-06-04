@@ -229,7 +229,7 @@ class RepositoryTest extends TestCase
         $created = Mockery::mock('C4tech\NestedSet\Repository')
             ->makePartial();
         $this->setPropertyValue($created, 'object', $created_model);
-        $created->shouldReceive('makeChildOf')
+        $created->shouldReceive('getModel->makeChildOf')
             ->with($parent_model)
             ->once();
 
