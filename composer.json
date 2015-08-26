@@ -1,6 +1,7 @@
 {
     "name": "c4tech/nested-set",
     "description": "A nested set implementation for easy extension.",
+    "license": "MIT",
     "authors": [
         {
             "name": "Marcus Amargi",
