@@ -27,7 +27,11 @@
     },
     "autoload": {
         "psr-4": {
-            "C4tech\\NestedSet\\": "src/",
+            "C4tech\\NestedSet\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
             "C4tech\\Test\\NestedSet\\": "tests/"
         }
     },
