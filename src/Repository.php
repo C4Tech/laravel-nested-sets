@@ -127,9 +127,7 @@ abstract class Repository extends BaseRepository
      */
     public function parent()
     {
-        return $this->object->parent()
-            ->cacheTags($this->getTags('parent'))
-            ->remember(static::CACHE_DAY);
+        return $this->object->parent();
     }
 
     /**
@@ -140,7 +138,14 @@ abstract class Repository extends BaseRepository
      */
     public function getParent()
     {
-        return $this->parent()->get();
+        return Cache::tags($this->getTags('parent'))
+            ->remember(
+                $this->getCacheId('parent'),
+                self::CACHE_DAY,
+                function () {
+                    return $this->parent()->get();
+                }
+            );
     }
 
     /**
@@ -150,9 +155,7 @@ abstract class Repository extends BaseRepository
      */
     public function children()
     {
-        return $this->object->children()
-            ->cacheTags($this->getTags('children'))
-            ->remember(static::CACHE_DAY);
+        return $this->object->children();
     }
 
     /**
@@ -163,7 +166,19 @@ abstract class Repository extends BaseRepository
      */
     public function getChildren()
     {
-        return $this->children()->get();
+        return Cache::tags($this->getTags('children'))
+            ->remember(
+                $this->getCacheId('children'),
+                self::CACHE_DAY,
+                function () {
+                    return $this->children()->get();
+                }
+            );
+    }
+
+    protected function getDescendantScope($include_self)
+    {
+        return ($include_self) ? 'descendantsAndSelf' : 'descendants';
     }
 
     /**
@@ -173,7 +188,7 @@ abstract class Repository extends BaseRepository
      */
     public function descendants($include_self = true)
     {
-        $scope = ($include_self) ? 'descendantsAndSelf' : 'descendants';
+        $scope = $this->getDescendantScope($include_self);
         return $this->object->$scope()
             ->cacheTags($this->getTags($scope))
             ->remember(static::CACHE_DAY);
@@ -187,7 +202,21 @@ abstract class Repository extends BaseRepository
      */
     public function getDescendants($include_self = true)
     {
-        return $this->descendants($include_self)->get();
+        $scope = $this->getDescendantScope($include_self);
+        return Cache::tags($this->getTags($scope))
+            ->remember(
+                $this->getCacheId($scope),
+                self::CACHE_DAY,
+                function () use ($include_self) {
+                    $this->descendants($include_self)->get();
+                }
+            );
+        return ;
+    }
+
+    protected function getAncendantScope($include_self)
+    {
+        return ($include_self) ? 'ancestorsAndSelf' : 'ancestors';
     }
 
     /**
@@ -197,10 +226,8 @@ abstract class Repository extends BaseRepository
      */
     public function ancestors($include_self = true)
     {
-        $scope = ($include_self) ? 'ancestorsAndSelf' : 'ancestors';
-        return $this->object->$scope()
-            ->cacheTags($this->getTags($scope))
-            ->remember(static::CACHE_DAY);
+        $scope = $this->getAncendantScope($include_self);
+        return $this->object->$scope();
     }
 
     /**
@@ -211,43 +238,66 @@ abstract class Repository extends BaseRepository
      */
     public function getAncestors($include_self = true)
     {
-        return $this->ancestors($include_self)->get();
+        $scope = $this->getAncendantScope($include_self);
+        return Cache::tags($this->getTags($scope))
+            ->remember(
+                $this->getCacheId($scope),
+                self::CACHE_DAY,
+                function () use ($include_self) {
+                    return $this->ancestors($include_self)->get();
+                }
+            );
     }
 
     public function roots()
     {
-        $model = Config::get(static::$model, static::$model);
-        return $model::roots()
-            ->cacheTags($this->formatTag('roots'))
-            ->remember(static::CACHE_LONG);
+        $model = $this->getModelClass();
+        return $model::roots();
     }
 
     public function getRoots()
     {
-        return $this->roots()->get();
+        return Cache::tags($this->formatTag('roots'))
+            ->remember(
+                $this->getCacheId('roots', null),
+                self::CACHE_LONG,
+                function () {
+                    return $this->roots()->get();
+                }
+            );
     }
 
     public function trunks()
     {
-        return $this->object->trunks()
-            ->cacheTags($this->formatTag('trunks'))
-            ->remember(static::CACHE_LONG);
+        return $this->object->trunks();
     }
 
     public function getTrunks()
     {
-        return $this->trunks()->get();
+        return Cache::tags($this->formatTag('trunks'))
+            ->remember(
+                $this->getCacheId('trunks', null),
+                self::CACHE_LONG,
+                function () {
+                    return $this->trunks()->get();
+                }
+            );
     }
 
     public function leaves()
     {
-        return $this->object->leaves()
-            ->cacheTags($this->formatTag('leaves'))
-            ->remember(static::CACHE_LONG);
+        return $this->object->leaves();
     }
 
     public function getLeaves()
     {
-        return $this->leaves()->get();
+        return Cache::tags($this->formatTag('leaves'))
+            ->remember(
+                $this->getCacheId('leaves', null),
+                self::CACHE_LONG,
+                function () {
+                    return $this->leaves()->get();
+                }
+            );
     }
 }

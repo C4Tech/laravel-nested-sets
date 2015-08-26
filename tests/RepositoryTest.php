@@ -263,21 +263,7 @@ class RepositoryTest extends TestCase
             ->once()
             ->andReturn('parent_id');
 
-        // Expectations for parent::update
-        Config::shouldReceive('get')
-            ->with(null, null)
-            ->once()
-            ->andReturn($this->mocked_model);
-
-        Log::shouldReceive('debug')
-            ->with(Mockery::type('string'), Mockery::type('array'))
-            ->once();
-
-        $this->mocked_model->shouldReceive('update')
-            ->with($updates)
-            ->once()
-            ->andReturn(false);
-        // End parent::update
+        $this->stubUpdate($updates, false);
 
         expect($this->repo->update($updates))->equals(false);
     }
@@ -306,21 +292,7 @@ class RepositoryTest extends TestCase
             ->once()
             ->andReturn($parent);
 
-        // Expectations for parent::update
-        Config::shouldReceive('get')
-            ->with(null, null)
-            ->once()
-            ->andReturn($this->mocked_model);
-
-        Log::shouldReceive('debug')
-            ->with(Mockery::type('string'), Mockery::type('array'))
-            ->once();
-
-        $this->mocked_model->shouldReceive('update')
-            ->with($updates)
-            ->once()
-            ->andReturn(false);
-        // End parent::update
+        $this->stubUpdate($updates, false);
 
         $this->mocked_model->shouldReceive('makeChildOf')
             ->with($parent_model)
@@ -349,21 +321,7 @@ class RepositoryTest extends TestCase
             ->once()
             ->andReturn($parent);
 
-        // Expectations for parent::update
-        Config::shouldReceive('get')
-            ->with(null, null)
-            ->once()
-            ->andReturn($this->mocked_model);
-
-        Log::shouldReceive('debug')
-            ->with(Mockery::type('string'), Mockery::type('array'))
-            ->once();
-
-        $this->mocked_model->shouldReceive('update')
-            ->with($updates)
-            ->once()
-            ->andReturn(false);
-        // End parent::update
+        $this->stubUpdate($updates, false);
 
         $this->mocked_model->shouldReceive('makeRoot')
             ->withNoArgs()
@@ -376,29 +334,31 @@ class RepositoryTest extends TestCase
 
     public function testParent()
     {
-        $tag = ['test'];
-
-        $this->mocked_model->shouldReceive('parent->cacheTags->remember')
-            ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
+        $this->mocked_model->shouldReceive('parent')
             ->once()
             ->andReturn(true);
-
-        $this->repo->shouldReceive('getTags')
-            ->with('parent')
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->parent())->true();
     }
 
     public function testGetParent()
     {
-        $this->repo->shouldReceive('parent->get')
-            ->withNoArgs()
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('array'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('parent')
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+                })
+            )
             ->once()
             ->andReturn(true);
+
 
         expect($this->repo->getParent())->true();
     }

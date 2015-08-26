@@ -22,7 +22,7 @@
     "require": {
         "php": ">=5.5.9",
         "baum/baum": "^1.1.0",
-        "c4tech/support": "^2.0.0",
+        "c4tech/support": "^2.1.0",
         "illuminate/support": "^5.0.0"
     },
     "autoload": {
