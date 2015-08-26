@@ -252,6 +252,128 @@ class RepositoryTest extends TestCase
         expect($this->repo->create($data))->equals($created);
     }
 
+    public function testUpdate()
+    {
+        $updates = [
+            'magic' => true
+        ];
+
+        $this->mocked_model->shouldReceive('getParentColumnName')
+            ->withNoArgs()
+            ->once()
+            ->andReturn('parent_id');
+
+        // Expectations for parent::update
+        Config::shouldReceive('get')
+            ->with(null, null)
+            ->once()
+            ->andReturn($this->mocked_model);
+
+        Log::shouldReceive('debug')
+            ->with(Mockery::type('string'), Mockery::type('array'))
+            ->once();
+
+        $this->mocked_model->shouldReceive('update')
+            ->with($updates)
+            ->once()
+            ->andReturn(false);
+        // End parent::update
+
+        expect($this->repo->update($updates))->equals(false);
+    }
+
+    public function testUpdateParent()
+    {
+        $parent_id = 14;
+        $parent_model = 'alphabet';
+        $parent = Mockery::mock('stdClass');
+        $parent->shouldReceive('getModel')
+            ->withNoArgs()
+            ->once()
+            ->andReturn($parent_model);
+        $parent->exists = true;
+        $updates = [
+            'magic' => true
+        ];
+
+        $this->mocked_model->shouldReceive('getParentColumnName')
+            ->withNoArgs()
+            ->once()
+            ->andReturn('parent_id');
+
+        $this->repo->shouldReceive('find')
+            ->with($parent_id)
+            ->once()
+            ->andReturn($parent);
+
+        // Expectations for parent::update
+        Config::shouldReceive('get')
+            ->with(null, null)
+            ->once()
+            ->andReturn($this->mocked_model);
+
+        Log::shouldReceive('debug')
+            ->with(Mockery::type('string'), Mockery::type('array'))
+            ->once();
+
+        $this->mocked_model->shouldReceive('update')
+            ->with($updates)
+            ->once()
+            ->andReturn(false);
+        // End parent::update
+
+        $this->mocked_model->shouldReceive('makeChildOf')
+            ->with($parent_model)
+            ->once();
+
+        $updates['parent_id'] = $parent_id;
+
+        expect($this->repo->update($updates))->false();
+    }
+
+    public function testUpdateRemoveParent()
+    {
+        $parent = 0;
+        $parent_id = 14;
+        $updates = [
+            'magic' => true
+        ];
+
+        $this->mocked_model->shouldReceive('getParentColumnName')
+            ->withNoArgs()
+            ->once()
+            ->andReturn('parent_id');
+
+        $this->repo->shouldReceive('find')
+            ->with($parent_id)
+            ->once()
+            ->andReturn($parent);
+
+        // Expectations for parent::update
+        Config::shouldReceive('get')
+            ->with(null, null)
+            ->once()
+            ->andReturn($this->mocked_model);
+
+        Log::shouldReceive('debug')
+            ->with(Mockery::type('string'), Mockery::type('array'))
+            ->once();
+
+        $this->mocked_model->shouldReceive('update')
+            ->with($updates)
+            ->once()
+            ->andReturn(false);
+        // End parent::update
+
+        $this->mocked_model->shouldReceive('makeRoot')
+            ->withNoArgs()
+            ->once();
+
+        $updates['parent_id'] = $parent_id;
+
+        expect($this->repo->update($updates))->false();
+    }
+
     public function testParent()
     {
         $tag = ['test'];
