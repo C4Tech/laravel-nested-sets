@@ -35,11 +35,5 @@
             "C4tech\\Test\\NestedSet\\": "tests/"
         }
     },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://packages.c4tech.com"
-        }
-    ],
     "minimum-stability": "stable"
 }
