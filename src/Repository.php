@@ -14,7 +14,7 @@ abstract class Repository extends BaseRepository
 {
     public function boot()
     {
-        if (!($model = Config::get(static::$model, static::$model))) {
+        if (!($model = $this->getModelClass())) {
             return;
         }
 
@@ -29,7 +29,10 @@ abstract class Repository extends BaseRepository
         // Flushing parent caches directly causes an infinite recursion
         $touch = function ($node) {
             if (Config::get('app.debug')) {
-                Log::debug('Touching parents to trigger cache flushing.', ['parent' => $node->parent]);
+                Log::debug(
+                    'Touching parents to trigger cache flushing.',
+                    ['parent' => $node->parent]
+                );
             }
 
             // Force parent caches to flush
@@ -80,6 +83,9 @@ abstract class Repository extends BaseRepository
             })->toArray();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function create($data = [])
     {
         $column = $this->object->getParentColumnName();
@@ -99,6 +105,9 @@ abstract class Repository extends BaseRepository
         return $new_object;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function update($data = [])
     {
         $column = $this->object->getParentColumnName();
@@ -123,7 +132,8 @@ abstract class Repository extends BaseRepository
     /**
      * Parent
      *
-     * Retrieves and caches parent object.
+     * Begin a query for retrieving the node's parent.
+     * @return Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function parent()
     {
@@ -133,7 +143,7 @@ abstract class Repository extends BaseRepository
     /**
      * Get Parent
      *
-     * Retrieves and caches parent object.
+     * Retrieves and caches the node's parent.
      * @return static
      */
     public function getParent()
@@ -151,7 +161,8 @@ abstract class Repository extends BaseRepository
     /**
      * (Immediate) Children
      *
-     * Retrieves and caches child objects.
+     * Begin a query for retrieving the node's children.
+     * @return Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function children()
     {
@@ -161,7 +172,7 @@ abstract class Repository extends BaseRepository
     /**
      * Get Children
      *
-     * Retrieves and caches child objects.
+     * Retrieves and caches the node's children.
      * @return \Illuminate\Support\Collection
      */
     public function getChildren()
@@ -176,7 +187,14 @@ abstract class Repository extends BaseRepository
             );
     }
 
-    protected function getDescendantScope($include_self)
+    /**
+     * Get Descendant Scope
+     *
+     * Calculate which descendant method to call.
+     * @param  boolean $include_self Include the current node in query results?
+     * @return string
+     */
+    protected function getDescendantScope($include_self = true)
     {
         return ($include_self) ? 'descendantsAndSelf' : 'descendants';
     }
@@ -184,20 +202,19 @@ abstract class Repository extends BaseRepository
     /**
      * Descendants
      *
-     * Retrieves and caches child objects.
+     * Begin query for all nodes descendant from the current one.
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function descendants($include_self = true)
     {
         $scope = $this->getDescendantScope($include_self);
-        return $this->object->$scope()
-            ->cacheTags($this->getTags($scope))
-            ->remember(static::CACHE_DAY);
+        return $this->object->$scope();
     }
 
     /**
      * Get Descendants
      *
-     * Retrieves and caches child objects.
+     * Retrieves and caches the node's descendants.
      * @return \Illuminate\Support\Collection
      */
     public function getDescendants($include_self = true)
@@ -208,13 +225,19 @@ abstract class Repository extends BaseRepository
                 $this->getCacheId($scope),
                 self::CACHE_DAY,
                 function () use ($include_self) {
-                    $this->descendants($include_self)->get();
+                    return $this->descendants($include_self)->get();
                 }
             );
-        return ;
     }
 
-    protected function getAncendantScope($include_self)
+    /**
+     * Get Ancestor Scope
+     *
+     * Calculate which ancestor method to call.
+     * @param  boolean $include_self Include the current node in query results?
+     * @return string
+     */
+    protected function getAncestorScope($include_self = true)
     {
         return ($include_self) ? 'ancestorsAndSelf' : 'ancestors';
     }
@@ -222,23 +245,24 @@ abstract class Repository extends BaseRepository
     /**
      * Ancestors
      *
-     * Retrieves and caches parent objects.
+     * Begin query for all nodes ascendant from the current one.
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function ancestors($include_self = true)
     {
-        $scope = $this->getAncendantScope($include_self);
+        $scope = $this->getAncestorScope($include_self);
         return $this->object->$scope();
     }
 
     /**
      * Get Ancestors
      *
-     * Retrieves and caches parent objects.
+     * Retrieves and caches the node's ancestors.
      * @return \Illuminate\Support\Collection
      */
     public function getAncestors($include_self = true)
     {
-        $scope = $this->getAncendantScope($include_self);
+        $scope = $this->getAncestorScope($include_self);
         return Cache::tags($this->getTags($scope))
             ->remember(
                 $this->getCacheId($scope),
@@ -249,12 +273,24 @@ abstract class Repository extends BaseRepository
             );
     }
 
+    /**
+     * Roots
+     *
+     * Begin query for all root nodes.
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function roots()
     {
         $model = $this->getModelClass();
         return $model::roots();
     }
 
+    /**
+     * Get Roots
+     *
+     * Retrieves and caches all root nodes.
+     * @return \Illuminate\Support\Collection
+     */
     public function getRoots()
     {
         return Cache::tags($this->formatTag('roots'))
@@ -267,11 +303,23 @@ abstract class Repository extends BaseRepository
             );
     }
 
+    /**
+     * Trunks
+     *
+     * Begin query for all non-root nodes with children.
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function trunks()
     {
         return $this->object->trunks();
     }
 
+    /**
+     * Get Trunks
+     *
+     * Retrieves and caches all non-root nodes with children.
+     * @return \Illuminate\Support\Collection
+     */
     public function getTrunks()
     {
         return Cache::tags($this->formatTag('trunks'))
@@ -284,11 +332,23 @@ abstract class Repository extends BaseRepository
             );
     }
 
+    /**
+     * Leaves
+     *
+     * Begin query for all non-root nodes with no children.
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function leaves()
     {
         return $this->object->leaves();
     }
 
+    /**
+     * Get Leaves
+     *
+     * Retrieves and caches all non-root nodes without children.
+     * @return \Illuminate\Support\Collection
+     */
     public function getLeaves()
     {
         return Cache::tags($this->formatTag('leaves'))

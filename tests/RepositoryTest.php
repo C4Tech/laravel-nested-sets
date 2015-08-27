@@ -208,7 +208,7 @@ class RepositoryTest extends TestCase
         $object = new stdClass;
         $object->exists = true;
 
-        $this->stubCreate(null, [], $object);
+        $this->stubCreate([], $object);
         expect($this->repo->create())->equals($object);
     }
 
@@ -240,7 +240,7 @@ class RepositoryTest extends TestCase
             ->andReturn($parent_model);
         $parent->exists = true;
 
-        $this->stubCreate(null, $data, $created);
+        $this->stubCreate($data, $created);
 
         $this->repo->shouldReceive('find')
             ->with($parent_id)
@@ -343,17 +343,29 @@ class RepositoryTest extends TestCase
 
     public function testGetParent()
     {
+        $this->repo->shouldReceive('getTags')
+            ->with('parent')
+            ->once()
+            ->andReturn(['tag']);
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('parent')
+            ->once()
+            ->andReturn('hashid');
+
         Cache::shouldReceive('tags->remember')
             ->with(Mockery::type('array'))
             ->with(
                 Mockery::type('string'),
                 Mockery::type('integer'),
                 Mockery::on(function ($closure) {
-                    $this->repo->shouldReceive('parent')
+                    $this->repo->shouldReceive('parent->get')
                         ->withNoArgs()
                         ->once()
                         ->andReturn(false);
                     expect($closure())->false();
+
+                    return true;
                 })
             )
             ->once()
@@ -365,151 +377,244 @@ class RepositoryTest extends TestCase
 
     public function testChildren()
     {
-        $tag = ['test'];
-
-        $this->mocked_model->shouldReceive('children->cacheTags->remember')
+        $this->mocked_model->shouldReceive('children')
             ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
             ->once()
             ->andReturn(true);
-
-        $this->repo->shouldReceive('getTags')
-            ->with('children')
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->children())->true();
     }
 
     public function testGetChildren()
     {
-        $this->repo->shouldReceive('children->get')
-            ->withNoArgs()
+        $this->repo->shouldReceive('getTags')
+            ->with('children')
+            ->once()
+            ->andReturn(['tag']);
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('children')
+            ->once()
+            ->andReturn('hashid');
+
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('array'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('children->get')
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+
+                    return true;
+                })
+            )
             ->once()
             ->andReturn(true);
+
 
         expect($this->repo->getChildren())->true();
     }
 
+    public function testGetDescendantScope()
+    {
+        $method = $this->getMethod($this->repo, 'getDescendantScope');
+        expect($method->invoke($this->repo))->equals('descendantsAndSelf');
+    }
+
+    public function testGetDescendantScopeNoSelf()
+    {
+        $method = $this->getMethod($this->repo, 'getDescendantScope');
+        expect($method->invoke($this->repo, false))->equals('descendants');
+    }
+
     public function testDescendantsDefault()
     {
-        $tag = ['test'];
-        $method = 'descendantsAndSelf';
-
-        $this->mocked_model->shouldReceive($method . '->cacheTags->remember')
+        $this->mocked_model->shouldReceive('descendantsAndSelf')
             ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
             ->once()
             ->andReturn(true);
-
-        $this->repo->shouldReceive('getTags')
-            ->with($method)
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->descendants())->true();
     }
 
     public function testDescendantsNoSelf()
     {
-        $tag = ['test'];
-        $method = 'descendants';
-
-        $this->mocked_model->shouldReceive($method . '->cacheTags->remember')
+        $this->mocked_model->shouldReceive('descendants')
             ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
             ->once()
             ->andReturn(true);
-
-        $this->repo->shouldReceive('getTags')
-            ->with($method)
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->descendants(false))->true();
     }
 
     public function testGetDescendantsDefault()
     {
-        $this->repo->shouldReceive('descendants->get')
-            ->with(true)
-            ->withNoArgs()
+        $this->repo->shouldReceive('getTags')
+            ->with('descendantsAndSelf')
+            ->once()
+            ->andReturn(['tag']);
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('descendantsAndSelf')
+            ->once()
+            ->andReturn('hashid');
+
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('array'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('descendants->get')
+                        ->with(true)
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+
+                    return true;
+                })
+            )
             ->once()
             ->andReturn(true);
+
 
         expect($this->repo->getDescendants())->true();
     }
 
     public function testGetDescendantsNoSelf()
     {
-        $this->repo->shouldReceive('descendants->get')
-            ->with(false)
-            ->withNoArgs()
+        $this->repo->shouldReceive('getTags')
+            ->with('descendants')
+            ->once()
+            ->andReturn(['tag']);
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('descendants')
+            ->once()
+            ->andReturn('hashid');
+
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('array'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('descendants->get')
+                        ->with(false)
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+
+                    return true;
+                })
+            )
             ->once()
             ->andReturn(true);
 
         expect($this->repo->getDescendants(false))->true();
     }
 
+    public function testGetAncestorScope()
+    {
+        $method = $this->getMethod($this->repo, 'getAncestorScope');
+        expect($method->invoke($this->repo))->equals('ancestorsAndSelf');
+    }
+
+    public function testGetAncestorScopeNoSelf()
+    {
+        $method = $this->getMethod($this->repo, 'getAncestorScope');
+        expect($method->invoke($this->repo, false))->equals('ancestors');
+    }
+
     public function testAncestorsDefault()
     {
-        $tag = ['test'];
-        $method = 'ancestorsAndSelf';
-
-        $this->mocked_model->shouldReceive($method . '->cacheTags->remember')
+        $this->mocked_model->shouldReceive('ancestorsAndSelf')
             ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
             ->once()
             ->andReturn(true);
-
-        $this->repo->shouldReceive('getTags')
-            ->with($method)
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->ancestors())->true();
     }
 
     public function testAncestorsNoSelf()
     {
-        $tag = ['test'];
-        $method = 'ancestors';
-
-        $this->mocked_model->shouldReceive($method . '->cacheTags->remember')
+        $this->mocked_model->shouldReceive('ancestors')
             ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
             ->once()
             ->andReturn(true);
-
-        $this->repo->shouldReceive('getTags')
-            ->with($method)
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->ancestors(false))->true();
     }
 
     public function testGetAncestorsDefault()
     {
-        $this->repo->shouldReceive('ancestors->get')
-            ->with(true)
-            ->withNoArgs()
+        $this->repo->shouldReceive('getTags')
+            ->with('ancestorsAndSelf')
+            ->once()
+            ->andReturn(['tag']);
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('ancestorsAndSelf')
+            ->once()
+            ->andReturn('hashid');
+
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('array'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('ancestors->get')
+                        ->with(true)
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+
+                    return true;
+                })
+            )
             ->once()
             ->andReturn(true);
+
 
         expect($this->repo->getAncestors())->true();
     }
 
     public function testGetAncestorsNoSelf()
     {
-        $this->repo->shouldReceive('ancestors->get')
-            ->with(false)
-            ->withNoArgs()
+        $this->repo->shouldReceive('getTags')
+            ->with('ancestors')
+            ->once()
+            ->andReturn(['tag']);
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('ancestors')
+            ->once()
+            ->andReturn('hashid');
+
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('array'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('ancestors->get')
+                        ->with(false)
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+
+                    return true;
+                })
+            )
             ->once()
             ->andReturn(true);
 
@@ -518,32 +623,45 @@ class RepositoryTest extends TestCase
 
     public function testRoots()
     {
-        $tag = ['test'];
-
-        $this->mocked_model->shouldReceive('roots->cacheTags->remember')
+        $this->mocked_model->shouldReceive('roots')
             ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
             ->once()
             ->andReturn(true);
 
-        Config::shouldReceive('get')
-            ->with(null, null)
+        $this->repo->shouldReceive('getModelClass')
             ->once()
             ->andReturn($this->mocked_model);
-
-        $this->repo->shouldReceive('formatTag')
-            ->with('roots')
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->roots())->true();
     }
 
     public function testGetRoots()
     {
-        $this->repo->shouldReceive('roots->get')
-            ->withNoArgs()
+        $this->repo->shouldReceive('formatTag')
+            ->with('roots')
+            ->once()
+            ->andReturn('tag');
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('roots', null)
+            ->once()
+            ->andReturn('hashid');
+
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('string'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('roots->get')
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+
+                    return true;
+                })
+            )
             ->once()
             ->andReturn(true);
 
@@ -552,27 +670,41 @@ class RepositoryTest extends TestCase
 
     public function testTrunks()
     {
-        $tag = ['test'];
-
-        $this->mocked_model->shouldReceive('trunks->cacheTags->remember')
+        $this->mocked_model->shouldReceive('trunks')
             ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
             ->once()
             ->andReturn(true);
-
-        $this->repo->shouldReceive('formatTag')
-            ->with('trunks')
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->trunks())->true();
     }
 
     public function testGetTrunks()
     {
-        $this->repo->shouldReceive('trunks->get')
-            ->withNoArgs()
+        $this->repo->shouldReceive('formatTag')
+            ->with('trunks')
+            ->once()
+            ->andReturn('tag');
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('trunks', null)
+            ->once()
+            ->andReturn('hashid');
+
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('string'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('trunks->get')
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+
+                    return true;
+                })
+            )
             ->once()
             ->andReturn(true);
 
@@ -581,27 +713,41 @@ class RepositoryTest extends TestCase
 
     public function testLeaves()
     {
-        $tag = ['test'];
-
-        $this->mocked_model->shouldReceive('leaves->cacheTags->remember')
+        $this->mocked_model->shouldReceive('leaves')
             ->withNoArgs()
-            ->with($tag)
-            ->with(Mockery::type('integer'))
             ->once()
             ->andReturn(true);
-
-        $this->repo->shouldReceive('formatTag')
-            ->with('leaves')
-            ->once()
-            ->andReturn($tag);
 
         expect($this->repo->leaves())->true();
     }
 
     public function testGetLeaves()
     {
-        $this->repo->shouldReceive('leaves->get')
-            ->withNoArgs()
+        $this->repo->shouldReceive('formatTag')
+            ->with('leaves')
+            ->once()
+            ->andReturn('tag');
+
+        $this->repo->shouldReceive('getCacheId')
+            ->with('leaves', null)
+            ->once()
+            ->andReturn('hashid');
+
+        Cache::shouldReceive('tags->remember')
+            ->with(Mockery::type('string'))
+            ->with(
+                Mockery::type('string'),
+                Mockery::type('integer'),
+                Mockery::on(function ($closure) {
+                    $this->repo->shouldReceive('leaves->get')
+                        ->withNoArgs()
+                        ->once()
+                        ->andReturn(false);
+                    expect($closure())->false();
+
+                    return true;
+                })
+            )
             ->once()
             ->andReturn(true);
 

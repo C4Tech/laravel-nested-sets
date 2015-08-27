@@ -19,7 +19,16 @@ class Model extends BaseModel implements ModelInterface
     /**
      * @inheritdoc
      */
-    protected $guarded = ['id', 'parent_id', 'lft', 'rgt', 'depth', 'created_at', 'updated_at', 'deleted_at'];
+    protected $guarded = [
+        'id',
+        'parent_id',
+        'lft',
+        'rgt',
+        'depth',
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
 
     /**
      * Get Dates
