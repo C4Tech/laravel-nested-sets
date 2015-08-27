@@ -173,7 +173,7 @@ abstract class Repository extends BaseRepository
      * Get Children
      *
      * Retrieves and caches the node's children.
-     * @return \Illuminate\Support\Collection
+     * @return Illuminate\Support\Collection
      */
     public function getChildren()
     {
@@ -203,7 +203,7 @@ abstract class Repository extends BaseRepository
      * Descendants
      *
      * Begin query for all nodes descendant from the current one.
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function descendants($include_self = true)
     {
@@ -215,7 +215,7 @@ abstract class Repository extends BaseRepository
      * Get Descendants
      *
      * Retrieves and caches the node's descendants.
-     * @return \Illuminate\Support\Collection
+     * @return Illuminate\Support\Collection
      */
     public function getDescendants($include_self = true)
     {
@@ -246,7 +246,7 @@ abstract class Repository extends BaseRepository
      * Ancestors
      *
      * Begin query for all nodes ascendant from the current one.
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function ancestors($include_self = true)
     {
@@ -258,7 +258,7 @@ abstract class Repository extends BaseRepository
      * Get Ancestors
      *
      * Retrieves and caches the node's ancestors.
-     * @return \Illuminate\Support\Collection
+     * @return Illuminate\Support\Collection
      */
     public function getAncestors($include_self = true)
     {
@@ -277,7 +277,7 @@ abstract class Repository extends BaseRepository
      * Roots
      *
      * Begin query for all root nodes.
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function roots()
     {
@@ -289,7 +289,7 @@ abstract class Repository extends BaseRepository
      * Get Roots
      *
      * Retrieves and caches all root nodes.
-     * @return \Illuminate\Support\Collection
+     * @return Illuminate\Support\Collection
      */
     public function getRoots()
     {
@@ -306,8 +306,8 @@ abstract class Repository extends BaseRepository
     /**
      * Trunks
      *
-     * Begin query for all non-root nodes with children.
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Begin query for all descendant nodes with children.
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function trunks()
     {
@@ -317,8 +317,8 @@ abstract class Repository extends BaseRepository
     /**
      * Get Trunks
      *
-     * Retrieves and caches all non-root nodes with children.
-     * @return \Illuminate\Support\Collection
+     * Retrieves and caches all descendant nodes with children.
+     * @return Illuminate\Support\Collection
      */
     public function getTrunks()
     {
@@ -335,8 +335,8 @@ abstract class Repository extends BaseRepository
     /**
      * Leaves
      *
-     * Begin query for all non-root nodes with no children.
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Begin query for all descendant nodes with no children.
+     * @return Illuminate\Database\Eloquent\Builder
      */
     public function leaves()
     {
@@ -346,8 +346,8 @@ abstract class Repository extends BaseRepository
     /**
      * Get Leaves
      *
-     * Retrieves and caches all non-root nodes without children.
-     * @return \Illuminate\Support\Collection
+     * Retrieves and caches all descendant nodes without children.
+     * @return Illuminate\Support\Collection
      */
     public function getLeaves()
     {
