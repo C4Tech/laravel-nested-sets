@@ -122,7 +122,7 @@ abstract class Repository extends BaseRepository
 
         if ($parent && $parent->exists) {
             $this->object->makeChildOf($parent->getModel());
-        } elseif ($parent === 0 or $parent === "") {
+        } elseif ($parent === 0 || $parent === "") {
             $this->object->makeRoot();
         }
 
@@ -295,7 +295,7 @@ abstract class Repository extends BaseRepository
     {
         return Cache::tags($this->formatTag('roots'))
             ->remember(
-                $this->getCacheId('roots', null),
+                $this->getCacheId('roots', ''),
                 self::CACHE_LONG,
                 function () {
                     return $this->roots()->get();
@@ -324,7 +324,7 @@ abstract class Repository extends BaseRepository
     {
         return Cache::tags($this->formatTag('trunks'))
             ->remember(
-                $this->getCacheId('trunks', null),
+                $this->getCacheId('trunks'),
                 self::CACHE_LONG,
                 function () {
                     return $this->trunks()->get();
@@ -353,7 +353,7 @@ abstract class Repository extends BaseRepository
     {
         return Cache::tags($this->formatTag('leaves'))
             ->remember(
-                $this->getCacheId('leaves', null),
+                $this->getCacheId('leaves'),
                 self::CACHE_LONG,
                 function () {
                     return $this->leaves()->get();

@@ -643,7 +643,7 @@ class RepositoryTest extends TestCase
             ->andReturn('tag');
 
         $this->repo->shouldReceive('getCacheId')
-            ->with('roots', null)
+            ->with('roots', '')
             ->once()
             ->andReturn('hashid');
 
@@ -686,7 +686,7 @@ class RepositoryTest extends TestCase
             ->andReturn('tag');
 
         $this->repo->shouldReceive('getCacheId')
-            ->with('trunks', null)
+            ->with('trunks')
             ->once()
             ->andReturn('hashid');
 
@@ -729,7 +729,7 @@ class RepositoryTest extends TestCase
             ->andReturn('tag');
 
         $this->repo->shouldReceive('getCacheId')
-            ->with('leaves', null)
+            ->with('leaves')
             ->once()
             ->andReturn('hashid');
 
