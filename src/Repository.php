@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
  * Node Repository
  *
  * Common business logic wrapper to Node Models.
+ * @property bool $exists Does the Model exist in the DB?
  */
 abstract class Repository extends BaseRepository
 {
@@ -86,7 +87,7 @@ abstract class Repository extends BaseRepository
     /**
      * @inheritDoc
      */
-    public function create($data = [])
+    public function create(array $data = [])
     {
         $column = $this->object->getParentColumnName();
         $parent = false;
@@ -108,7 +109,7 @@ abstract class Repository extends BaseRepository
     /**
      * @inheritDoc
      */
-    public function update($data = [])
+    public function update(array $data = [])
     {
         $column = $this->object->getParentColumnName();
         $parent = null;
